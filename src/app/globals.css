@@ -1,0 +1,205 @@
+@import 'tailwindcss';
+
+:root {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --tile-color: #2bff0081;
+  --tile-glow: rgba(0, 255, 0, 0.6);
+  --neon-green: #2bff00;
+  --neon-green-hover: #2bff00d0;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: var(--neon-green);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Bridge and tiles styling */
+.bridge-container {
+  position: relative;
+  transform: perspective(1000px) rotateX(60deg) scale(1);
+  transform-style: preserve-3d;
+  width: 100%;
+  top: 70px;
+}
+
+.bridge-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 20;
+}
+
+.glass-tile {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 8px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform-origin: center bottom;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 20;
+}
+
+.glass-tile-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--tile-color);
+  border: 4px solid #2aff00;
+  box-shadow: 0 0 10px var(--tile-glow);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.glass-tile-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.glass-tile-unselected .glass-tile-inner {
+  opacity: 0.8;
+}
+
+.glass-tile-current .glass-tile-inner {
+  box-shadow: 0 0 15px 5px var(--tile-glow);
+  opacity: 1;
+}
+
+.glass-tile-correct .glass-tile-inner {
+  opacity: 0.9;
+}
+
+.glass-tile-wrong {
+  transform: translateY(100px) rotateX(90deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glass-tile-breaking {
+  animation: tile-break 0.3s forwards;
+  pointer-events: none;
+}
+
+@keyframes tile-break {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1.05) translateY(2px);
+  }
+  100% {
+    transform: scale(0.9) translateY(50px) rotateX(45deg);
+    opacity: 0;
+  }
+}
+
+/* Glass shards animation */
+.glass-shards-container {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 30;
+  transform: translateX(-50px);
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.glass-shard {
+  position: absolute;
+  background-color: var(--neon-green);
+  filter: drop-shadow(0 0 5px var(--tile-glow));
+  opacity: 0.8;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  transform-origin: center;
+  animation: shard-fall 0.6s forwards;
+  box-shadow: 0 0 10px var(--neon-green);
+  backdrop-filter: blur(4px);
+}
+
+@keyframes shard-fall {
+  0% {
+    transform: translateY(0) rotate(var(--rotation));
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(80px) rotate(calc(var(--rotation) + 45deg));
+    opacity: 0;
+  }
+}
+
+/* Game background */
+.game-background {
+  /* position: absolute; */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+  opacity: 1;
+}
+
+/* Pixelated effect */
+.pixelated-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='2' height='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1,1 L0,0 L1,0 L0,1 L1,1' fill='rgba(0,255,0,0.05)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+  z-index: 100;
+  mix-blend-mode: screen;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+  }
+}
