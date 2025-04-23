@@ -9,124 +9,82 @@ import { Character } from '@/types/character';
 //constants
 import { CHARACTER_AVATAR_MAP } from '@/constants/character';
 //hooks
-import { useTTS } from '@/hooks/useTTS';
+import  {play, pause, mute, unmute, changeTrack} from "../../store/slices/audioSlice"
+import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
+import type { RootState, AppDispatch } from '../../store/store'
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
 interface IntroductionPhaseProps {
   characters: Character[];
   onNextPhase: () => void;
-  isMuted: boolean;
-  isPlaying: boolean;
-  onMuteToggle: () => void;
-  onPlayToggle: () => void;
 }
 
 const IntroductionPhase = (props: IntroductionPhaseProps) => {
-  const { characters, isMuted, isPlaying, onMuteToggle, onPlayToggle, onNextPhase } = props;
+  const { characters, onNextPhase } = props;
+  const dispatch = useAppDispatch()
+  const audioState = useAppSelector((state) => state.audio)
 
   const [currentCharacterIndex, setCurrentCharacterIndex] = React.useState<number>(0);
-  const tts = useTTS();
 
   const currentCharacter = React.useMemo(
     () => characters[currentCharacterIndex],
     [characters, currentCharacterIndex]
   );
 
-  // Debug logging for state changes
-  React.useEffect(() => {
-    console.log('State Update:', {
-      isPlaying,
-      isMuted,
-      currentCharacterIndex,
-      currentCharacter: currentCharacter.name,
-      ttsState: {
-        isPlaying: tts.isPlaying,
-        error: tts.error,
-        isSupported: tts.isSupported,
-        hasPermission: tts.hasPermission,
-      }
-    });
-  }, [isPlaying, isMuted, currentCharacterIndex, currentCharacter, tts.isPlaying, tts.error, tts.isSupported, tts.hasPermission]);
+  // // Debug logging for state changes
+  // React.useEffect(() => {
+  //   console.log('State Update:', {
+  //     currentCharacterIndex,
+  //     currentCharacter: currentCharacter.name,
+  //     ttsState: {
+  //       isPlaying: tts.isPlaying,
+  //       error: tts.error,
+  //       isSupported: tts.isSupported,
+  //       hasPermission: tts.hasPermission,
+  //     }
+  //   });
+  // }, [currentCharacterIndex, currentCharacter, tts.isPlaying, tts.error, tts.isSupported, tts.hasPermission]);
 
-  // Stop audio when muted
-  React.useEffect(() => {
-    if (isMuted) {
-      console.log('Mute triggered - stopping audio');
-      tts.stop();
-    }
-  }, [isMuted, tts]);
 
   // Auto-play functionality
   useEffect(() => {
-    if (isPlaying && !isMuted && !tts.isPlaying) {
-      const playIntroduction = async () => {
-        try {
-          const text = `${currentCharacter.name} says: ${currentCharacter.introduction}`;
-          await tts.speak(text, {
-            voice: 'heart',
-            language: 'en-us',
-            speakingRate: 1.0
-          });
+    // if (audioState.isPlaying && !tts.isPlaying) {
+    //   const playIntroduction = async () => {
+    //     try {
+    //       const text = `${currentCharacter.name} says: ${currentCharacter.introduction}`;
+    //       await tts.speak(text, {
+    //         voice: 'heart',
+    //         language: 'en-us',
+    //         speakingRate: 1.0
+    //       });
           
-          if (currentCharacterIndex < characters.length - 1) {
-            setCurrentCharacterIndex(prev => prev + 1);
-          } else {
-            onPlayToggle();
-          }
-        } catch (error) {
-          console.error('Error playing audio:', error);
-          onPlayToggle();
-        }
-      };
+    //       if (currentCharacterIndex < characters.length - 1) {
+    //         setCurrentCharacterIndex(prev => prev + 1);
+    //       } else {
+    //         dispatch(pause())
+    //       }
+    //     } catch (error) {
+    //       console.error('Error playing audio:', error);
+    //       dispatch(pause())
+    //     }
+    //   };
 
-      playIntroduction();
-    }
-  }, [isPlaying, isMuted, currentCharacterIndex, currentCharacter, characters.length, onPlayToggle, tts]);
+    //   playIntroduction();
+    // }
+
+    // choose aud
+    dispatch(changeTrack("lol.mp3"))
+    dispatch(play());
+  }, []);
 
   const handleForwardClick = useCallback(() => {
-    console.log('Forward button clicked');
-    console.log('Current state:', {
-      isPlaying,
-      isMuted,
-      currentCharacterIndex,
-      charactersLength: characters.length
-    });
-
-    // Stop any playing audio
-    if (tts.isPlaying) {
-      console.log('Stopping current audio');
-      tts.stop();
-    }
-
-    // Move to next character or end phase
-    if (currentCharacterIndex < characters.length - 1) {
-      console.log('Moving to next character');
-      setCurrentCharacterIndex(prev => prev + 1);
-    } else {
-      console.log('Ending introduction phase');
-      onNextPhase();
-    }
-  }, [isPlaying, isMuted, currentCharacterIndex, characters.length, onNextPhase, tts]);
+    
+  }, []);
 
   const handleBackwardClick = useCallback(() => {
-    console.log('Backward button clicked');
-    console.log('Current state:', {
-      isPlaying,
-      isMuted,
-      currentCharacterIndex
-    });
 
-    // Stop any playing audio
-    if (tts.isPlaying) {
-      console.log('Stopping current audio');
-      tts.stop();
-    }
-
-    // Move to previous character or start
-    if (currentCharacterIndex > 0) {
-      console.log('Moving to previous character');
-      setCurrentCharacterIndex(prev => prev - 1);
-    }
-  }, [isPlaying, isMuted, currentCharacterIndex, tts]);
+  }, []);
 
   const onNextCharacter = useCallback(() => {
     console.log('Next character clicked');
@@ -135,7 +93,7 @@ const IntroductionPhase = (props: IntroductionPhaseProps) => {
       tts.stop();
     }
     setCurrentCharacterIndex(prev => Math.min(prev + 1, characters.length - 1));
-  }, [characters.length, tts]);
+  }, [characters.length]);
 
   const onPreviousCharacter = useCallback(() => {
     console.log('Previous character clicked');
@@ -144,19 +102,15 @@ const IntroductionPhase = (props: IntroductionPhaseProps) => {
       tts.stop();
     }
     setCurrentCharacterIndex(prev => Math.max(0, prev - 1));
-  }, [tts]);
+  }, []);
 
   return (
     <div className="flex h-screen w-full flex-col space-y-8 overflow-auto bg-black p-8">
       <TitleBar
         onRewind={handleBackwardClick}
         onPreviousStep={onPreviousCharacter}
-        onPlayToggle={onPlayToggle}
         onNextStep={onNextCharacter}
         onFastForward={handleForwardClick}
-        onMuteToggle={onMuteToggle}
-        isMuted={isMuted}
-        isPlaying={isPlaying}
       />
 
       {/* Video Area */}
@@ -183,17 +137,13 @@ const IntroductionPhase = (props: IntroductionPhaseProps) => {
               Choose the correct glass tile to cross the bridge. One tile is tempered and will hold
               your weight, the other will break. Use arrow keys or click to select.
             </p>
-            {!tts.isSupported && (
-              <p className="mb-4 text-red-500">
-                Your browser does not support text-to-speech. Audio narration will not be available.
-              </p>
-            )}
+            
             {/* {tts.isSupported && !tts.hasPermission && (
               <p className="mb-4 text-yellow-500">
                 Please grant permission for text-to-speech to hear character introductions.
               </p>
             )} */}
-            {currentCharacterIndex === characters.length - 1 && !tts.isPlaying && (
+            {currentCharacterIndex === characters.length - 1 && (
               <button
                 onClick={onNextPhase}
                 className="rounded-md bg-[var(--neon-green)] px-8 py-4 text-xl font-bold text-black transition-colors hover:bg-[var(--neon-green-hover)]"
@@ -214,16 +164,16 @@ const IntroductionPhase = (props: IntroductionPhaseProps) => {
             alt={currentCharacter.name}
             className={cn(
               "mr-8 max-h-64 w-64 rounded-lg border border-[var(--neon-green)] p-2",
-              tts.isPlaying && "animate-pulse"
+              "animate-pulse"
             )}
           />
-          {tts.isPlaying && (
+          
             <div className="absolute bottom-4 right-4 flex items-center space-x-1">
               <div className="h-2 w-2 animate-bounce rounded-full bg-[var(--neon-green)] [animation-delay:-0.3s]"></div>
               <div className="h-2 w-2 animate-bounce rounded-full bg-[var(--neon-green)] [animation-delay:-0.15s]"></div>
               <div className="h-2 w-2 animate-bounce rounded-full bg-[var(--neon-green)]"></div>
             </div>
-          )}
+          
         </div>
 
         {/* Text Area */}
