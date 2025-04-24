@@ -12,6 +12,15 @@ import { Character } from '@/types/character';
 import { GamePlayStep } from '@/types/transcript';
 //services
 import transcriptService from '@/services/transcriptService';
+import {store} from "../store/store"
+import  {play, pause, mute, unmute, changeTrack} from "../store/slices/audioSlice"
+import { Provider, useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
+import type { RootState, AppDispatch } from '../store/store'
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+import rawTranscript from "../assets/transcript.json";
+import TranscriptItem from "../types/transcript"
+const transcript = rawTranscript as TranscriptItem;
 
 export default function Home() {
   const [phase, setPhase] = useState<'loading' | 'introduction' | 'gameplay' | 'results'>(
@@ -21,16 +30,15 @@ export default function Home() {
   const [gamePlaySteps, setGameplaySteps] = useState<GamePlayStep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const count = useSelector(state => state.counter.value)
 
   // Fetch data on mount
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const { data: transcript } = await transcriptService.getTranscript();
-
+        // const { data: transcript } = await transcriptService.getTranscript();
+        console.log(transcript);
         if (transcript.length === 0) {
           throw new Error('Failed to fetch transcript data');
         }
@@ -42,8 +50,6 @@ export default function Home() {
         setCharacters(extractedCharacters);
         setGameplaySteps(gameTranscript);
         setPhase('introduction');
-        // Start playing automatically when entering introduction phase
-        setIsPlaying(true);
       } catch (err) {
         console.error('Error setting up game:', err);
         setError('Failed to load game data. Please try again later.');
@@ -56,15 +62,7 @@ export default function Home() {
   //Handle phase transitions
   const handleIntroductionComplete = () => {
     setPhase('gameplay');
-    setIsPlaying(false); // Stop playing when moving to gameplay
-  };
-
-  const toggleMute = () => {
-    setIsMuted((prevState) => !prevState);
-  };
-
-  const togglePlay = () => {
-    setIsPlaying((prevState) => !prevState);
+    // dispatch(pause());
   };
 
   // Show loading state
@@ -96,30 +94,24 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900">
-      <AnimatePresence mode="wait">
-        {phase === 'introduction' && (
-          <IntroductionPhase
-            key="introduction"
-            characters={characters}
-            isMuted={isMuted}
-            isPlaying={isPlaying}
-            onMuteToggle={toggleMute}
-            onPlayToggle={togglePlay}
-            onNextPhase={handleIntroductionComplete}
-          />
-        )}
-        {phase === 'gameplay' && (
-          <GameplayPhase
-            gamePlaySteps={gamePlaySteps}
-            characters={characters}
-            isMuted={isMuted}
-            isPlaying={isPlaying}
-            onMuteToggle={toggleMute}
-            onPlayToggle={togglePlay}
-          />
-        )}
-      </AnimatePresence>
-    </main>
+    <Provider store={store}>
+      <main className="min-h-screen bg-gray-900">
+        <AnimatePresence mode="wait">
+          {phase === 'introduction' && (
+            <IntroductionPhase
+              key="introduction"
+              characters={characters}
+              onNextPhase={handleIntroductionComplete}
+            />
+          )}
+          {phase === 'gameplay' && (
+            <GameplayPhase
+              gamePlaySteps={gamePlaySteps}
+              characters={characters}
+            />
+          )}
+        </AnimatePresence>
+      </main>
+    </Provider>
   );
 }

@@ -12,10 +12,6 @@ import { GamePlayStep } from '@/types/transcript';
 
 interface GameplayPhaseProps {
   characters: Character[];
-  isMuted: boolean;
-  isPlaying: boolean;
-  onMuteToggle: () => void;
-  onPlayToggle: () => void;
   gamePlaySteps: GamePlayStep[];
 }
 
@@ -28,7 +24,7 @@ const getInitialCharacterPositions = (characters: Character[]) => {
 };
 
 const GameplayPhase = (props: GameplayPhaseProps) => {
-  const { characters, isMuted, isPlaying, onMuteToggle, onPlayToggle, gamePlaySteps } = props;
+  const { characters, gamePlaySteps } = props;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [characterPositions, setCharacterPositions] = React.useState<
@@ -77,12 +73,8 @@ const GameplayPhase = (props: GameplayPhaseProps) => {
       <TitleBar
         onRewind={onRewind}
         onPreviousStep={onPreviousStep}
-        onPlayToggle={onPlayToggle}
         onNextStep={onNextStep}
         onFastForward={onFastForward}
-        onMuteToggle={onMuteToggle}
-        isMuted={isMuted}
-        isPlaying={isPlaying}
       />
 
       {/* Video Area */}
